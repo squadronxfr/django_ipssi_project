@@ -42,7 +42,7 @@ from django.core.exceptions import PermissionDenied
 from .models import UserProfile
 
 
-FORBIDDEN_TEMPLATE = "403.html"
+FORBIDDEN_TEMPLATE = "accounts/403.html"
 
 
 def _render_403(request: HttpRequest) -> HttpResponse:

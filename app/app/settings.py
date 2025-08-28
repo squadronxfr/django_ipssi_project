@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,14 +41,18 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
 ]
 
+# Sécurité HTTP côté middleware
+# - SecurityMiddleware: active des protections utiles (HSTS, redirect HTTPS si configuré)
+# - CsrfViewMiddleware: protège contre les attaques CSRF
+# - XFrameOptionsMiddleware: protège contre le clickjacking via l'en-tête X-Frame-Options
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking
 ]
 
 ROOT_URLCONF = 'app.urls'
@@ -81,15 +86,21 @@ DATABASES = {
 }
 
 
-# Password validation
+# Validation des mots de passe renforcée
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+# - UserAttributeSimilarityValidator: empêche d'utiliser des mots de passe trop proches
+#   des attributs utilisateur (nom, email, etc.).
+# - MinimumLengthValidator: longueur minimale (augmentée ici à 12 caractères).
+# - CommonPasswordValidator: rejette les mots de passe courants/faibles.
+# - NumericPasswordValidator: rejette les mots de passe purement numériques.
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        # 'OPTIONS': {'max_similarity': 0.7},  # exemple: resserrer encore si besoin
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 12},  # longueur minimale augmentée
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -116,6 +127,54 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# Authentification / redirections
+# LOGIN_URL: l'URL de connexion (nom de route). Utilisée par @login_required, etc.
+# LOGIN_REDIRECT_URL: fallback de redirection après login si aucune "next" n'est fournie.
+# LOGOUT_REDIRECT_URL: où rediriger après déconnexion.
+# Pour des redirections selon les rôles, notre RoleBasedLoginView applique déjà
+# une logique dédiée. On expose néanmoins un mapping à titre de configuration.
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'profile'  # fallback générique (la vue de login gère les rôles)
+LOGOUT_REDIRECT_URL = '/'
+# Mapping indicatif pour les redirections par rôle (utilisable par les vues si besoin)
+ROLE_LOGIN_REDIRECTS = {
+    'admin': '/admin/',
+    'recruiter': '/profile/',
+    'candidate': '/profile/',
+}
+
+# Sécurité des sessions et des cookies
+# - SESSION_COOKIE_SECURE/CSRF_COOKIE_SECURE: envoie les cookies uniquement via HTTPS
+# - *_HTTPONLY: empêche l'accès aux cookies via JavaScript (mitige XSS)
+# - *_SAMESITE: limite l'envoi des cookies aux contextes de même site (mitige CSRF)
+# - SESSION_EXPIRE_AT_BROWSER_CLOSE: option pour expirer à la fermeture du navigateur
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# Durée de vie de session (en secondes). 1 jour ici (adapter selon besoin)
+SESSION_COOKIE_AGE = 60 * 60 * 24
+
+# En-têtes et sécurité HTTPS (même en dev, pour habituer l'environnement)
+# - SECURE_SSL_REDIRECT: force le HTTPS (désactiver si développement sans HTTPS)
+# - SECURE_HSTS_*: active HSTS pour imposer HTTPS côté navigateur
+# - SECURE_CONTENT_TYPE_NOSNIFF: bloque le MIME sniffing
+# - SECURE_REFERRER_POLICY: réduit les infos de referer envoyées
+# - X_FRAME_OPTIONS: empêche l'inclusion dans des iframes (clickjacking)
+SECURE_SSL_REDIRECT = False  # mettre True en prod ou dev avec HTTPS
+SECURE_HSTS_SECONDS = 31536000  # 1 an
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+X_FRAME_OPTIONS = 'DENY'
+
+# Si l'application est derrière un proxy (ex: Nginx) qui termine TLS, décommentez:
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

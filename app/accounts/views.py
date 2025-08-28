@@ -31,7 +31,7 @@ class RoleBasedLoginView(LoginView):
 
     authentication_form = AuthenticationForm
     redirect_authenticated_user = True
-    template_name = "registration/login.html"  # par convention; peut être absent
+    template_name = "accounts/login.html"  # correspond au template de l'app
 
     def get_success_url(self):
         user = self.request.user
@@ -74,7 +74,7 @@ class CandidateSignUpView(FormView):
     """
 
     form_class = CandidateSignUpForm
-    template_name = "registration/signup.html"
+    template_name = "accounts/register.html"
     success_url = reverse_lazy("login")  # par convention si la route existe
 
     def dispatch(self, request: HttpRequest, *args, **kwargs):
