@@ -1,0 +1,12 @@
+Bonjour {{ first_name }},
+
+Bienvenue sur {{ site_name }} !
+
+Votre compte a bien été créé avec le nom d'utilisateur: {{ username }}.
+Vous pouvez vous connecter à tout moment via le lien suivant:
+{{ login_url }}
+
+Si vous ne reconnaissez pas cette action, veuillez ignorer cet email.
+
+Cordialement,
+L'équipe {{ site_name }}
