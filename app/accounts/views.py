@@ -142,7 +142,7 @@ class ProfileView(LoginRequiredMixin, FormView):
 class LogoutViewCBV(LogoutView):
     """Vue de déconnexion simple."""
 
-    next_page = "/"  # fallback si aucune URL nommée fournie
+    next_page = "/"
 
 
 @method_decorator(login_required, name="dispatch")

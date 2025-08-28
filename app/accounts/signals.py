@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import Group
@@ -20,7 +19,6 @@ def _ensure_groups_exist():
     try:
         create_default_groups()
     except Exception:
-        # Éviter de casser la transaction user/profile
         pass
 
 
@@ -32,12 +30,10 @@ def _assign_user_to_group(profile: UserProfile) -> None:
     # S'assurer que les groupes existent
     _ensure_groups_exist()
 
-    # Retirer des autres groupes contrôlés par l'app
     user = profile.user
     groups_to_consider = [perms.ADMIN_GROUP, perms.RECRUITER_GROUP, perms.CANDIDATE_GROUP]
     user.groups.remove(*Group.objects.filter(name__in=groups_to_consider))
 
-    # Ajouter au bon groupe
     group, _ = Group.objects.get_or_create(name=group_name)
     user.groups.add(group)
 

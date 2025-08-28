@@ -1,37 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Décorateurs pour protéger les vues selon les rôles utilisateurs.
-
-Rôles disponibles (valeurs):
-- "admin"
-- "recruiter"
-- "candidate"
-
-Chaque décorateur renvoie une page 403 en cas d'accès refusé.
-Si le template templates/403.html n'existe pas, on renvoie une HttpResponseForbidden simple.
-
-Exemples d'utilisation:
-
-    from django.urls import path
-    from accounts.decorators import admin_required, recruteur_required, candidat_required, role_required
-
-    @admin_required
-    def admin_dashboard(request):
-        ...
-
-    @recruteur_required
-    def recruteur_page(request):
-        ...
-
-    @candidat_required
-    def candidate_portal(request):
-        ...
-
-    @role_required(roles=["admin", "recruiter"])  # accès aux admins et recruteurs
-    def mixed_view(request):
-        ...
-
-"""
 from functools import wraps
 from typing import Callable, Iterable, Optional
 

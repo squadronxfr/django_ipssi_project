@@ -13,9 +13,6 @@ from .views import (
 )
 from .decorators import admin_required, recruteur_required, candidat_required
 
-
-# Petites vues utilitaires pour tests et home
-
 def home(request):
     """Redirige vers profil si connecté, sinon vers login."""
     if request.user.is_authenticated:

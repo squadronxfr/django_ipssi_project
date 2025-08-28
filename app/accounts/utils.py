@@ -1,9 +1,12 @@
-# -*- coding: utf-8 -*-
-from typing import Iterable
+import logging
+from typing import Iterable, Iterable as _Iterable, List, Optional, Union, Sequence, Mapping
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
+from django.template.loader import render_to_string
+from django.template import TemplateDoesNotExist
 
 from .models import UserProfile
 from . import permissions as perms
@@ -14,13 +17,10 @@ def create_default_groups() -> None:
     """
     Crée (ou met à jour) les groupes par défaut et leur assigne les permissions
     définies dans accounts.permissions et UserProfile.Meta.permissions.
-
-    Idempotent: peut être appelé plusieurs fois sans effets indésirables.
     """
-    # S'assurer que les Permission concernés existent (après migrations)
+    # S'assurer que les Permission concernés existent
     ct = ContentType.objects.get_for_model(UserProfile)
 
-    # Construire l'ensemble des codenames nécessaires
     required_codenames = set()
     for codes in perms.GROUP_PERMISSIONS.values():
         required_codenames.update(codes)
@@ -31,9 +31,6 @@ def create_default_groups() -> None:
 
     missing = required_codenames - set(existing_by_code.keys())
     if missing:
-        # Les built-ins (add/change/delete/view) existent toujours après migrations
-        # Si des customs manquent, c'est probablement que les migrations n'ont pas été appliquées.
-        # On ne lève pas d'erreur bloquante, mais on continue avec celles disponibles.
         pass
 
     # Créer/mettre à jour les groupes et assigner les permissions
@@ -46,19 +43,6 @@ def create_default_groups() -> None:
         group.save()
 
 
-import logging
-from typing import Iterable, Iterable as _Iterable, List, Optional, Union, Sequence, Mapping
-
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
-from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
-from django.template.loader import render_to_string
-from django.template import TemplateDoesNotExist
-from django.utils.html import strip_tags
-
-from .models import UserProfile
-from . import permissions as perms
 
 logger = logging.getLogger(__name__)
 

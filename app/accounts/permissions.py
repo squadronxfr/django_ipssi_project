@@ -1,8 +1,5 @@
-# -*- coding: utf-8 -*-
 """
 Définitions des permissions et groupes pour l'application accounts.
-Ces constantes servent de source de vérité pour la création des groupes
-et l'attribution des permissions.
 """
 
 # Noms des groupes
@@ -10,7 +7,6 @@ ADMIN_GROUP = "admin_group"
 RECRUITER_GROUP = "recruteur_group"
 CANDIDATE_GROUP = "candidat_group"
 
-# Permissions personnalisées (codenames) déclarées dans UserProfile.Meta.permissions
 CAN_MANAGE_USERS = "can_manage_users"
 CAN_MANAGE_RECRUITMENT = "can_manage_recruitment"
 CAN_APPLY_JOBS = "can_apply_jobs"
