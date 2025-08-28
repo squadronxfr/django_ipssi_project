@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="fr">
+  <body style="font-family: Arial, Helvetica, sans-serif; color:#222;">
+    <p>Bonjour {{ first_name }},</p>
+    <p>Bienvenue sur <strong>{{ site_name }}</strong> !</p>
+    <p>
+      Votre compte a bien été créé avec le nom d'utilisateur: <strong>{{ username }}</strong>.<br>
+      Vous pouvez vous connecter à tout moment via le lien suivant:<br>
+      <a href="{{ login_url }}" target="_blank" rel="noopener noreferrer">Se connecter</a>
+    </p>
+    <p style="color:#666; font-size: 13px;">Si vous ne reconnaissez pas cette action, veuillez ignorer cet email.</p>
+    <p>Cordialement,<br>L'équipe {{ site_name }}</p>
+  </body>
+</html>

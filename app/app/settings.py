@@ -180,3 +180,48 @@ X_FRAME_OPTIONS = 'DENY'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================
+# Email / SMTP configuration
+# ==========================
+# Pour l'envoi d'emails (notifications, bienvenue, réinitialisation, etc.).
+# On utilise par défaut le SMTP Gmail pour les tests. Les identifiants NE DOIVENT
+# PAS être committés: utilisez des variables d'environnement.
+#
+# Variables d'environnement proposées:
+# - EMAIL_BACKEND: backend Django (par défaut smtp)
+# - EMAIL_HOST: hôte SMTP (smtp.gmail.com)
+# - EMAIL_PORT: port SMTP (587 pour TLS)
+# - EMAIL_USE_TLS: True pour STARTTLS
+# - EMAIL_USE_SSL: False (ne pas activer en même temps que TLS)
+# - EMAIL_HOST_USER: votre adresse expéditrice (Gmail)
+# - EMAIL_HOST_PASSWORD: mot de passe d'application (Gmail App Password)
+# - DEFAULT_FROM_EMAIL: email expéditeur par défaut
+# - SERVER_EMAIL: email de l'expéditeur des erreurs serveur
+# - EMAIL_TIMEOUT: timeout en secondes pour les connexions SMTP
+# - EMAIL_SUBJECT_PREFIX: préfixe des sujets d'email
+#
+# Important pour Gmail:
+# - Activez la validation 2FA et utilisez un "App password" dédié.
+# - Évitez les « less secure apps » (obsolète côté Gmail).
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+# Port STARTTLS conseillé pour Gmail
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'true').lower() in ('1', 'true', 'yes')
+# Ne pas activer SSL si TLS est activé. Pour SSL direct, utilisez port 465 et EMAIL_USE_TLS=false.
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'false').lower() in ('1', 'true', 'yes') and not EMAIL_USE_TLS
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@example.com')
+SERVER_EMAIL = os.environ.get('SERVER_EMAIL', DEFAULT_FROM_EMAIL)
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', '30'))
+EMAIL_SUBJECT_PREFIX = os.environ.get('EMAIL_SUBJECT_PREFIX', '[RH] ')
+
+# Option utile en dev local: envoyer en console au lieu de SMTP
+# (décommentez si besoin rapidement)
+# if DEBUG:
+#     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
