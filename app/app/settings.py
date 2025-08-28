@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'accounts.apps.AccountsConfig',
     'recruitment',
 ]
@@ -193,6 +194,25 @@ X_FRAME_OPTIONS = 'DENY'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================
+# Django REST Framework (DRF)
+# ==========================
+# Configuration par défaut des permissions et authentifications pour l'API.
+# - IsAuthenticated: exige que l'utilisateur soit connecté pour accéder à l'API par défaut.
+# - SessionAuthentication: utilise la session Django (pratique avec le site web).
+# - BasicAuthentication: utile pour tests via outils type curl/Postman (à désactiver en prod si non nécessaire).
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
 
 # ==========================
 # Email / SMTP configuration

@@ -18,10 +18,19 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework.routers import DefaultRouter
+
+from recruitment.api_views import PosteViewSet, CandidatureViewSet, ScoreViewSet
+
+router = DefaultRouter()
+router.register(r'postes', PosteViewSet, basename='poste')
+router.register(r'candidatures', CandidatureViewSet, basename='candidature')
+router.register(r'scores', ScoreViewSet, basename='score')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('accounts.urls')),
+    path('api/', include(router.urls)),
 ]
 
 # Servir les fichiers médias en développement uniquement
