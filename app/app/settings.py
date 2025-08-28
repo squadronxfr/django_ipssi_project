@@ -129,6 +129,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Fichiers médias (uploads utilisateurs)
+# MEDIA_URL: URL publique pour servir les fichiers uploadés
+# MEDIA_ROOT: répertoire sur le système de fichiers où sont stockés les fichiers
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Permissions des fichiers et répertoires uploadés (sécurité des accès)
+# - 0o640: lecture/écriture pour l'utilisateur du processus, lecture pour le groupe
+# - 0o750: propriétaire tout accès, groupe lecture/exécution (par ex. pour serveur web)
+FILE_UPLOAD_PERMISSIONS = 0o640
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
+
 # Authentification / redirections
 # LOGIN_URL: l'URL de connexion (nom de route). Utilisée par @login_required, etc.
 # LOGIN_REDIRECT_URL: fallback de redirection après login si aucune "next" n'est fournie.

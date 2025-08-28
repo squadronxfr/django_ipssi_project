@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .validators import validate_document_file
+from .utils import upload_to_cv, upload_to_lettre
 
 
 class Poste(models.Model):
@@ -40,8 +42,18 @@ class Candidature(models.Model):
         on_delete=models.CASCADE,
         related_name="candidatures",
     )
-    cv_file = models.FileField(upload_to="cvs/", blank=True, null=True)
-    lettre_motivation_file = models.FileField(upload_to="lettres/", blank=True, null=True)
+    cv_file = models.FileField(
+        upload_to=upload_to_cv,
+        validators=[validate_document_file],
+        blank=True,
+        null=True,
+    )
+    lettre_motivation_file = models.FileField(
+        upload_to=upload_to_lettre,
+        validators=[validate_document_file],
+        blank=True,
+        null=True,
+    )
     date_soumission = models.DateTimeField(auto_now_add=True)
     statut = models.CharField(max_length=20, choices=Statuts.choices, default=Statuts.SOUMISE)
 
