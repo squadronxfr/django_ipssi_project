@@ -88,3 +88,27 @@ class Score(models.Model):
 
     def __str__(self) -> str:
         return f"Score {self.score_ia if self.score_ia is not None else '-'} pour {self.candidature}"
+
+
+class Notification(models.Model):
+    """Modèle pour les notifications utilisateurs."""
+
+    class NotificationType(models.TextChoices):
+        NOUVELLE_CANDIDATURE = "new_candidature", "Nouvelle candidature"
+        STATUT_CANDIDATURE = "status_update", "Changement de statut"
+        NOUVEAU_POSTE = "new_post", "Nouveau poste créé"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    notification_type = models.CharField(max_length=50, choices=NotificationType.choices)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "is_read"]),
+        ]
+
+    def __str__(self) -> str:
+        return f"Notification pour {self.user.username} ({self.get_notification_type_display()})"

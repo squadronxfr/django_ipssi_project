@@ -1,0 +1,8 @@
+Bonjour,
+
+Le statut de votre candidature pour le poste "{{ poste_titre }}" a été mis à jour.
+
+Nouveau statut : {{ nouveau_statut }}
+
+Cordialement,
+L'équipe RH
