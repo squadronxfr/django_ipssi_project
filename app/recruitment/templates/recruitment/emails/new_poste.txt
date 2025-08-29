@@ -1,0 +1,11 @@
+Bonjour,
+
+Un nouveau poste a été créé sur la plateforme.
+
+Titre : {{ poste_titre }}
+
+Description :
+{{ poste_description }}
+
+Cordialement,
+Le système de notification

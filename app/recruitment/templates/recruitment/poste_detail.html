@@ -1,0 +1,54 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}{{ poste.titre }} - RH System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Détail du Poste -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h1 class="card-title">{{ poste.titre }}</h1>
+                </div>
+                <div class="card-body">
+                    <p><strong>Type de contrat :</strong> {{ poste.get_type_contrat_display }}</p>
+                    <p><strong>Date de publication :</strong> {{ poste.date_publication|date:"d F Y" }}</p>
+                    <hr>
+                    <h5 class="card-subtitle mb-2 text-muted">Description du poste</h5>
+                    <p class="card-text">{{ poste.description|linebreaks }}</p>
+                    <hr>
+                    <h5 class="card-subtitle mb-2 text-muted">Responsabilités</h5>
+                    <div class="card-text">{{ poste.responsabilites|linebreaks }}</div>
+                    <hr>
+                    <h5 class="card-subtitle mb-2 text-muted">Qualifications requises</h5>
+                    <div class="card-text">{{ poste.qualifications|linebreaks }}</div>
+                </div>
+                <div class="card-footer text-muted">
+                    Publié il y a {{ poste.date_publication|timesince }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Formulaire de Candidature -->
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Postuler</h4>
+                </div>
+                <div class="card-body">
+                    {% if user.is_authenticated %}
+                        <form method="post" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" class="btn btn-primary w-100 mt-3">Envoyer ma candidature</button>
+                        </form>
+                    {% else %}
+                        <p>Vous devez être <a href="{% url 'login' %}?next={{ request.path }}">connecté</a> pour postuler.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

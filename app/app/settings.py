@@ -38,7 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'accounts.apps.AccountsConfig',
+    'recruitment',
 ]
 
 # Sécurité HTTP côté middleware
@@ -128,6 +130,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Fichiers médias (uploads utilisateurs)
+# MEDIA_URL: URL publique pour servir les fichiers uploadés
+# MEDIA_ROOT: répertoire sur le système de fichiers où sont stockés les fichiers
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Permissions des fichiers et répertoires uploadés (sécurité des accès)
+# - 0o640: lecture/écriture pour l'utilisateur du processus, lecture pour le groupe
+# - 0o750: propriétaire tout accès, groupe lecture/exécution (par ex. pour serveur web)
+FILE_UPLOAD_PERMISSIONS = 0o640
+FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
+
 # Authentification / redirections
 # LOGIN_URL: l'URL de connexion (nom de route). Utilisée par @login_required, etc.
 # LOGIN_REDIRECT_URL: fallback de redirection après login si aucune "next" n'est fournie.
@@ -180,6 +194,25 @@ X_FRAME_OPTIONS = 'DENY'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================
+# Django REST Framework (DRF)
+# ==========================
+# Configuration par défaut des permissions et authentifications pour l'API.
+# - IsAuthenticated: exige que l'utilisateur soit connecté pour accéder à l'API par défaut.
+# - SessionAuthentication: utilise la session Django (pratique avec le site web).
+# - BasicAuthentication: utile pour tests via outils type curl/Postman (à désactiver en prod si non nécessaire).
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+}
 
 # ==========================
 # Email / SMTP configuration

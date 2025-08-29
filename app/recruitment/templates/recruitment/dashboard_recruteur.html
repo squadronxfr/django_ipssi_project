@@ -1,0 +1,125 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Dashboard Recruteur - RH System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Tableau de Bord Recruteur</h1>
+    <p>Liste des candidatures pour les postes qui vous sont assignés.</p>
+
+    <!-- Filtres et Tri -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <input type="text" id="filterTableInput" class="form-control" placeholder="Filtrer par candidat ou poste...">
+        </div>
+        <div class="col-md-4">
+            <select id="filterStatus" class="form-select">
+                <option value="">Tous les statuts</option>
+                <option value="en_attente">En attente</option>
+                <option value="en_revision">En révision</option>
+                <option value="entretien">Entretien</option>
+                <option value="accepte">Accepté</option>
+                <option value="refuse">Refusé</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button id="sortScore" class="btn btn-outline-secondary w-100">Trier par Score</button>
+        </div>
+    </div>
+
+    <!-- Tableau des Candidatures -->
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th scope="col">Candidat</th>
+                    <th scope="col">Poste</th>
+                    <th scope="col">Date de Candidature</th>
+                    <th scope="col">Statut</th>
+                    <th scope="col" class="text-center">Score</th>
+                    <th scope="col">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="candidaturesTableBody">
+                {% for candidature in candidatures %}
+                <tr data-status="{{ candidature.statut }}">
+                    <td>{{ candidature.candidat.get_full_name|default:candidature.candidat.username }}</td>
+                    <td>{{ candidature.poste.titre }}</td>
+                    <td>{{ candidature.date_soumission|date:"d/m/Y" }}</td>
+                    <td><span class="badge bg-secondary">{{ candidature.get_statut_display }}</span></td>
+                    <td class="text-center fw-bold">{{ candidature.score|default:"N/A" }}</td>
+                    <td>
+                        <a href="#" class="btn btn-sm btn-primary">Voir</a>
+                        {# <a href="{% url 'update_candidature_status' candidature.id %}" class="btn btn-sm btn-info">Changer Statut</a> #}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">Aucune candidature à afficher.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filterInput = document.getElementById('filterTableInput');
+    const filterStatus = document.getElementById('filterStatus');
+    const sortScoreBtn = document.getElementById('sortScore');
+    const tableBody = document.getElementById('candidaturesTableBody');
+    const rows = Array.from(tableBody.getElementsByTagName('tr'));
+
+    let scoreSortDirection = 'desc'; // 'asc' or 'desc'
+
+    function filterAndSort() {
+        const filterText = filterInput.value.toLowerCase();
+        const statusValue = filterStatus.value;
+
+        rows.forEach(row => {
+            const candidateName = row.cells[0].textContent.toLowerCase();
+            const posteTitle = row.cells[1].textContent.toLowerCase();
+            const status = row.dataset.status;
+
+            const textMatch = candidateName.includes(filterText) || posteTitle.includes(filterText);
+            const statusMatch = statusValue === '' || status === statusValue;
+
+            if (textMatch && statusMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    function sortRowsByScore() {
+        const visibleRows = rows.filter(row => row.style.display !== 'none');
+        
+        visibleRows.sort((a, b) => {
+            const scoreA = parseFloat(a.cells[4].textContent) || 0;
+            const scoreB = parseFloat(b.cells[4].textContent) || 0;
+
+            if (scoreSortDirection === 'desc') {
+                return scoreB - scoreA;
+            } else {
+                return scoreA - scoreB;
+            }
+        });
+
+        // Mettre à jour le DOM
+        visibleRows.forEach(row => tableBody.appendChild(row));
+
+        // Inverser la direction pour le prochain clic
+        scoreSortDirection = scoreSortDirection === 'desc' ? 'asc' : 'desc';
+        sortScoreBtn.textContent = `Trier par Score (${scoreSortDirection === 'desc' ? 'Haut > Bas' : 'Bas > Haut'})`;
+    }
+
+    filterInput.addEventListener('keyup', filterAndSort);
+    filterStatus.addEventListener('change', filterAndSort);
+    sortScoreBtn.addEventListener('click', sortRowsByScore);
+});
+</script>
+{% endblock %}

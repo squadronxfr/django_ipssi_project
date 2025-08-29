@@ -1,0 +1,104 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Liste des Postes - RH System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Postes Ouverts</h1>
+
+    <!-- Filtres et Tri -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <input type="text" id="filterInput" class="form-control" placeholder="Filtrer par mot-clé...">
+        </div>
+        <div class="col-md-4">
+            <select id="filterContract" class="form-select">
+                <option value="">Tous les contrats</option>
+                <option value="CDI">CDI</option>
+                <option value="CDD">CDD</option>
+                <option value="Alternance">Alternance</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select id="sortSelect" class="form-select">
+                <option value="date-desc">Plus récents d'abord</option>
+                <option value="date-asc">Plus anciens d'abord</option>
+                <option value="title-asc">Titre (A-Z)</option>
+                <option value="title-desc">Titre (Z-A)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Liste des Postes -->
+    <div id="posteList" class="list-group">
+        {% for poste in postes %}
+        <a href="{% url 'poste_detail' poste.id %}" class="list-group-item list-group-item-action" data-contract="{{ poste.type_contrat }}" data-date="{{ poste.date_publication|date:'Y-m-d' }}">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">{{ poste.titre }}</h5>
+                <small>{{ poste.date_publication|timesince }}</small>
+            </div>
+            <p class="mb-1">{{ poste.description|truncatewords:30 }}</p>
+            <small>Type de contrat : {{ poste.get_type_contrat_display }}</small>
+        </a>
+        {% empty %}
+        <p class="text-center">Aucun poste n'est actuellement disponible.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const filterInput = document.getElementById('filterInput');
+    const filterContract = document.getElementById('filterContract');
+    const sortSelect = document.getElementById('sortSelect');
+    const posteList = document.getElementById('posteList');
+    const postes = Array.from(posteList.getElementsByClassName('list-group-item'));
+
+    function filterAndSort() {
+        const filterText = filterInput.value.toLowerCase();
+        const filterContractValue = filterContract.value;
+        const sortValue = sortSelect.value;
+
+        // 1. Filtrer
+        const filteredPostes = postes.filter(poste => {
+            const title = poste.querySelector('h5').textContent.toLowerCase();
+            const description = poste.querySelector('p').textContent.toLowerCase();
+            const contract = poste.dataset.contract;
+
+            const textMatch = title.includes(filterText) || description.includes(filterText);
+            const contractMatch = filterContractValue === '' || contract === filterContractValue;
+
+            return textMatch && contractMatch;
+        });
+
+        // 2. Trier
+        filteredPostes.sort((a, b) => {
+            switch (sortValue) {
+                case 'date-asc':
+                    return new Date(a.dataset.date) - new Date(b.dataset.date);
+                case 'title-asc':
+                    return a.querySelector('h5').textContent.localeCompare(b.querySelector('h5').textContent);
+                case 'title-desc':
+                    return b.querySelector('h5').textContent.localeCompare(a.querySelector('h5').textContent);
+                case 'date-desc':
+                default:
+                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+            }
+        });
+
+        // 3. Mettre à jour le DOM
+        posteList.innerHTML = '';
+        filteredPostes.forEach(poste => posteList.appendChild(poste));
+    }
+
+    filterInput.addEventListener('keyup', filterAndSort);
+    filterContract.addEventListener('change', filterAndSort);
+    sortSelect.addEventListener('change', filterAndSort);
+
+    // Tri initial
+    filterAndSort();
+});
+</script>
+{% endblock %}
