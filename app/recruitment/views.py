@@ -16,51 +16,48 @@ class PosteListView(ListView):
     context_object_name = "postes"
 
     def get_template_names(self):
-        if hasattr(self.request.user, "profile") and self.request.user.profile.role == UserProfile.Roles.RECRUITER:
-            return ["recruitment/poste_list_recruteur.html"]
-        return ["recruitment/poste_list.html"]
+        return ["recruitment/poste_list_recruteur.html" if self._is_recruiter() else "recruitment/poste_list.html"]
 
     def get_queryset(self):
-        if hasattr(self.request.user, "profile") and self.request.user.profile.role == UserProfile.Roles.RECRUITER:
-            return Poste.objects.all()
-        return Poste.objects.filter(actif=True)
+        return Poste.objects.all() if self._is_recruiter() else Poste.objects.filter(actif=True)
+
+    def _is_recruiter(self):
+        return (hasattr(self.request.user, 'profile') and 
+                self.request.user.profile.role == UserProfile.Roles.RECRUITER)
 
 
-class PosteDetailView(DetailView, FormView):
+class PosteDetailView(DetailView):
     model = Poste
     template_name = "recruitment/poste_detail.html"
     context_object_name = "poste"
-    form_class = CandidatureForm
-
-    def get_success_url(self):
-        return reverse_lazy("recruitment:poste-detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'] = CandidatureForm()
+        
         if self.request.user.is_authenticated:
             context["existing_candidature"] = Candidature.objects.filter(
                 poste=self.object, candidat=self.request.user
             ).first()
         return context
 
-    def form_valid(self, form):
-        if not self.request.user.is_authenticated:
-            return redirect("accounts:login")
-
-        poste = self.get_object()
-        candidature = form.save(commit=False)
-        candidature.candidat = self.request.user
-        candidature.poste = poste
-        candidature.save()
-        return super().form_valid(form)
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        form = self.get_form()
+        
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        
+        form = CandidatureForm(request.POST, request.FILES)
         if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+            candidature = form.save(commit=False)
+            candidature.candidat = request.user
+            candidature.poste = self.object
+            candidature.save()
+            return redirect(self.request.path)
+        
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 
 class RecruiterDashboardView(ListView):
@@ -77,12 +74,15 @@ class AdminDashboardView(AdminRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["total_postes"] = Poste.objects.count()
-        context["total_candidatures"] = Candidature.objects.count()
-        context["postes_actifs"] = Poste.objects.filter(actif=True).count()
-        context["candidatures_par_statut"] = (
-            Candidature.objects.values("statut").annotate(count=Count("statut")).order_by()
-        )
+        
+        candidature_stats = Candidature.objects.values('statut').annotate(count=Count('statut'))
+        
+        context.update({
+            'total_postes': Poste.objects.count(),
+            'total_candidatures': Candidature.objects.count(),
+            'postes_actifs': Poste.objects.filter(actif=True).count(),
+            'candidatures_par_statut': list(candidature_stats)
+        })
         return context
 
 
