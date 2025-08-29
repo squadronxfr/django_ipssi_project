@@ -1,14 +1,15 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, FormView, ListView, TemplateView, View, CreateView, UpdateView, DeleteView
-from accounts.decorators import AdminRequiredMixin, RecruiterRequiredMixin
+from accounts.decorators import AdminRequiredMixin, RecruiterRequiredMixin, CandidateRequiredMixin
 
 from accounts.models import UserProfile
 from .forms import CandidatureForm, PosteForm, CandidatureStatusForm
-from .models import Candidature, Poste
+from .models import Candidature, Poste, Notification
 
 
 class PosteListView(ListView):
@@ -20,6 +21,15 @@ class PosteListView(ListView):
 
     def get_queryset(self):
         return Poste.objects.filter(actif=True)
+
+
+class UserCandidaturesListView(CandidateRequiredMixin, ListView):
+    model = Candidature
+    template_name = 'recruitment/user_candidatures.html'
+    context_object_name = 'candidatures'
+
+    def get_queryset(self):
+        return Candidature.objects.filter(candidat=self.request.user).select_related('poste')
 
 
 class PosteDetailView(DetailView):
@@ -49,6 +59,18 @@ class PosteDetailView(DetailView):
             candidature.candidat = request.user
             candidature.poste = self.object
             candidature.save()
+
+            # Create notifications for recruiters and admins
+            admins_and_recruiters = User.objects.filter(
+                profile__role__in=[UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
+            ).distinct()
+            for user in admins_and_recruiters:
+                Notification.objects.create(
+                    user=user,
+                    notification_type=Notification.NotificationType.NOUVELLE_CANDIDATURE,
+                    message=f"Nouvelle candidature de {candidature.candidat.get_full_name()} pour le poste {candidature.poste.titre}."
+                )
+
             return redirect(self.request.path)
         
         context = self.get_context_data()

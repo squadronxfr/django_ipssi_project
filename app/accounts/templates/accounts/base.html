@@ -24,7 +24,7 @@
           <div class="flex items-center gap-6">
             <a class="text-xl font-semibold text-gray-900" href="/">RH</a>
             {% if request.user.is_authenticated %}
-              <a class="text-gray-600 hover:text-gray-900" href="{% url 'profile' %}">Profil</a>
+              <a class="text-gray-600 hover:text-gray-900" href="{% url 'accounts:profile' %}">Profil</a>
               {% if request.user.is_staff or request.user.is_superuser %}
                 <a class="text-gray-600 hover:text-gray-900" href="/admin/">Admin</a>
               {% else %}
@@ -35,16 +35,16 @@
               {% if request.user.profile and request.user.profile.role == 'recruiter' %}
                 <a href="/recruitment/dashboard/recruteur/" class="text-gray-400">Recrutement</a>
               {% elif request.user.profile and request.user.profile.role == 'candidate' %}
-                <a href="/recruitment/" class="text-gray-400">Mes candidatures</a>
+                <a href="{% url 'recruitment:user_candidatures' %}" class="text-gray-400">Mes candidatures</a>
               {% endif %}
             {% endif %}
           </div>
           <div class="flex items-center gap-4">
             {% if request.user.is_authenticated %}
-              <a class="text-gray-600 hover:text-gray-900" href="{% url 'logout' %}">Déconnexion</a>
+              <a class="text-gray-600 hover:text-gray-900" href="{% url 'accounts:logout' %}">Déconnexion</a>
             {% else %}
-              <a class="text-gray-600 hover:text-gray-900" href="{% url 'login' %}">Connexion</a>
-              <a class="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-white hover:bg-indigo-700" href="{% url 'register' %}">Inscription</a>
+              <a class="text-gray-600 hover:text-gray-900" href="{% url 'accounts:login' %}">Connexion</a>
+              <a class="inline-flex items-center px-3 py-1.5 rounded-md bg-primary text-white hover:bg-indigo-700" href="{% url 'accounts:register' %}">Inscription</a>
             {% endif %}
           </div>
         </div>

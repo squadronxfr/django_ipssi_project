@@ -21,6 +21,7 @@ urlpatterns = [
     path('postes/<int:poste_id>/candidatures/', views.PosteCandidaturesListView.as_view(), name='poste_candidatures'),
 
     # Vues pour les candidatures
+    path('mes-candidatures/', views.UserCandidaturesListView.as_view(), name='user_candidatures'),
     path('candidatures/<int:pk>/', views.CandidatureDetailView.as_view(), name='candidature_detail'),
     path('candidatures/<int:pk>/modifier-statut/', views.CandidatureUpdateStatusView.as_view(), name='candidature_status_update'),
 

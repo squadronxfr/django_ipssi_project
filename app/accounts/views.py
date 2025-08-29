@@ -31,7 +31,7 @@ class RoleBasedLoginView(LoginView):
         if user.groups.filter(name='recruteur_group').exists():
             return reverse('recruitment:dashboard_recruteur')
 
-        return reverse('profile')
+        return reverse('accounts:profile')
 
     def _safe_reverse(self, name: str, fallback: str = "/") -> str:
         try:
@@ -43,12 +43,12 @@ class RoleBasedLoginView(LoginView):
 class CandidateSignUpView(FormView):
     form_class = CandidateSignUpForm
     template_name = "accounts/register.html"
-    success_url = reverse_lazy("login")
+    success_url = reverse_lazy("accounts:login")
 
     def dispatch(self, request: HttpRequest, *args, **kwargs):
         if request.user.is_authenticated:
             messages.info(request, "Vous êtes déjà connecté.")
-            return redirect(self._safe_reverse("profile", fallback="/"))
+            return redirect(self._safe_reverse("accounts:profile", fallback="/"))
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form: CandidateSignUpForm):
@@ -76,7 +76,7 @@ class CandidateSignUpView(FormView):
 class ProfileView(LoginRequiredMixin, FormView):
     form_class = ProfileForm
     template_name = "accounts/profile.html"
-    success_url = reverse_lazy("profile")
+    success_url = reverse_lazy("accounts:profile")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -96,7 +96,7 @@ class ProfileView(LoginRequiredMixin, FormView):
 def logout_view(request):
     logout(request)
     messages.success(request, "Vous avez été déconnecté avec succès.")
-    return redirect("login")
+    return redirect("accounts:login")
 
 
 @method_decorator(login_required, name="dispatch")
