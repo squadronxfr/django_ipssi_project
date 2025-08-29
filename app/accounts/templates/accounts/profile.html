@@ -1,41 +1,97 @@
 {% extends "accounts/base.html" %}
 {% block title %}Mon profil - RH System{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-8 col-lg-7">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h1 class="h4 mb-3">Mon profil</h1>
-        <div class="mb-3 text-muted small">
-          <div><strong>Utilisateur:</strong> {{ request.user.username }}</div>
-          <div><strong>Rôle:</strong> {% if request.user.is_staff or request.user.is_superuser %}Admin{% else %}{{ request.user.profile.get_role_display|default:"-" }}{% endif %}</div>
+<div class="max-w-xl mx-auto">
+  <div class="bg-white shadow-xl border border-gray-200 rounded-2xl overflow-hidden">
+    <div class="p-8 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Mon profil</h1>
+          <p class="text-gray-500">Gérez vos informations personnelles</p>
         </div>
-        <form method="post" novalidate>
-          {% csrf_token %}
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+        <div class="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm">
+          {% if request.user.is_staff or request.user.is_superuser %}
+            Admin
+          {% else %}
+            {{ request.user.profile.get_role_display|default:"-" }}
           {% endif %}
-          <div class="mb-3">
-            <label for="id_first_name" class="form-label">Prénom</label>
-            <input type="text" name="first_name" class="form-control" id="id_first_name" value="{{ form.first_name.value|default:'' }}">
-            {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors|striptags }}</div>{% endif %}
-          </div>
-          <div class="mb-3">
-            <label for="id_last_name" class="form-label">Nom</label>
-            <input type="text" name="last_name" class="form-control" id="id_last_name" value="{{ form.last_name.value|default:'' }}">
-            {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors|striptags }}</div>{% endif %}
-          </div>
-          <div class="mb-3">
-            <label for="id_email" class="form-label">Email</label>
-            <input type="email" name="email" class="form-control" id="id_email" value="{{ form.email.value|default:'' }}" required>
-            {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors|striptags }}</div>{% endif %}
-          </div>
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Enregistrer</button>
-            <a class="btn btn-outline-secondary" href="{% url 'password_change' %}">Changer le mot de passe</a>
-          </div>
-        </form>
+        </div>
       </div>
+
+      <div class="border-b border-gray-200 pb-4 mb-6">
+        <div class="text-sm text-gray-600">
+          <div class="flex items-center space-x-2 mb-2">
+            <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+            </svg>
+            <span><strong>Utilisateur:</strong> {{ request.user.username }}</span>
+          </div>
+        </div>
+      </div>
+
+      <form method="post" novalidate class="space-y-6">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+          <div class="rounded-md bg-red-50 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p class="text-sm text-red-700">{{ form.non_field_errors }}</p>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div>
+          <label for="id_first_name" class="block text-sm font-medium text-gray-700">Prénom</label>
+          <div class="mt-1">
+            <input type="text" name="first_name" id="id_first_name" value="{{ form.first_name.value|default:'' }}" 
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm {% if form.first_name.errors %}border-red-500{% endif %}"
+            />
+            {% if form.first_name.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.first_name.errors|striptags }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <label for="id_last_name" class="block text-sm font-medium text-gray-700">Nom</label>
+          <div class="mt-1">
+            <input type="text" name="last_name" id="id_last_name" value="{{ form.last_name.value|default:'' }}" 
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm {% if form.last_name.errors %}border-red-500{% endif %}"
+            />
+            {% if form.last_name.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.last_name.errors|striptags }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div>
+          <label for="id_email" class="block text-sm font-medium text-gray-700">Email</label>
+          <div class="mt-1">
+            <input type="email" name="email" id="id_email" value="{{ form.email.value|default:'' }}" required
+              class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm {% if form.email.errors %}border-red-500{% endif %}"
+            />
+            {% if form.email.errors %}
+              <p class="mt-2 text-sm text-red-600">{{ form.email.errors|striptags }}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex space-x-4">
+          <button type="submit" class="flex-1 flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Enregistrer
+          </button>
+          <a href="{% url 'accounts:password_change' %}" class="flex-1 flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+            Changer le mot de passe
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 </div>

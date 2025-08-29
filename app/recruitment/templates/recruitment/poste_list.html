@@ -3,24 +3,29 @@
 {% block title %}Liste des Postes - RH System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="my-4">Postes Ouverts</h1>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-gray-900">Postes Ouverts</h1>
+    </div>
 
     <!-- Filtres et Tri -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <input type="text" id="filterInput" class="form-control" placeholder="Filtrer par mot-clé...">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
+        <div>
+            <label for="filterInput" class="block text-sm font-medium text-gray-700">Filtrer par mot-clé</label>
+            <input type="text" id="filterInput" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="e.g., Développeur, Paris...">
         </div>
-        <div class="col-md-4">
-            <select id="filterContract" class="form-select">
+        <div>
+            <label for="filterContract" class="block text-sm font-medium text-gray-700">Type de contrat</label>
+            <select id="filterContract" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
                 <option value="">Tous les contrats</option>
                 <option value="CDI">CDI</option>
                 <option value="CDD">CDD</option>
                 <option value="Alternance">Alternance</option>
             </select>
         </div>
-        <div class="col-md-4">
-            <select id="sortSelect" class="form-select">
+        <div>
+            <label for="sortSelect" class="block text-sm font-medium text-gray-700">Trier par</label>
+            <select id="sortSelect" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
                 <option value="date-desc">Plus récents d'abord</option>
                 <option value="date-asc">Plus anciens d'abord</option>
                 <option value="title-asc">Titre (A-Z)</option>
@@ -30,18 +35,22 @@
     </div>
 
     <!-- Liste des Postes -->
-    <div id="posteList" class="list-group">
+    <div id="posteList" class="grid grid-cols-1 gap-6">
         {% for poste in postes %}
-        <a href="{% url 'poste_detail' poste.id %}" class="list-group-item list-group-item-action" data-contract="{{ poste.type_contrat }}" data-date="{{ poste.date_publication|date:'Y-m-d' }}">
-            <div class="d-flex w-100 justify-content-between">
-                <h5 class="mb-1">{{ poste.titre }}</h5>
-                <small>{{ poste.date_publication|timesince }}</small>
+        <a href="{% url 'recruitment:poste_detail' poste.id %}" class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 block" data-contract="{{ poste.type_contrat }}" data-date="{{ poste.date_publication|date:'Y-m-d' }}">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-800">{{ poste.titre }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">Type de contrat : {{ poste.get_type_contrat_display }}</p>
+                </div>
+                <span class="text-sm text-gray-500">{{ poste.date_publication|timesince }}</span>
             </div>
-            <p class="mb-1">{{ poste.description|truncatewords:30 }}</p>
-            <small>Type de contrat : {{ poste.get_type_contrat_display }}</small>
+            <p class="text-gray-600 mt-4">{{ poste.description|truncatewords:40 }}</p>
         </a>
         {% empty %}
-        <p class="text-center">Aucun poste n'est actuellement disponible.</p>
+        <div class="text-center py-12">
+            <p class="text-lg text-gray-600">Aucun poste n'est actuellement disponible.</p>
+        </div>
         {% endfor %}
     </div>
 </div>
@@ -54,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterContract = document.getElementById('filterContract');
     const sortSelect = document.getElementById('sortSelect');
     const posteList = document.getElementById('posteList');
-    const postes = Array.from(posteList.getElementsByClassName('list-group-item'));
+    const originalPostes = Array.from(posteList.querySelectorAll('[data-contract]'));
 
     function filterAndSort() {
         const filterText = filterInput.value.toLowerCase();
@@ -62,8 +71,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const sortValue = sortSelect.value;
 
         // 1. Filtrer
-        const filteredPostes = postes.filter(poste => {
-            const title = poste.querySelector('h5').textContent.toLowerCase();
+        const filteredPostes = originalPostes.filter(poste => {
+            const title = poste.querySelector('h2').textContent.toLowerCase();
             const description = poste.querySelector('p').textContent.toLowerCase();
             const contract = poste.dataset.contract;
 
@@ -75,22 +84,31 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // 2. Trier
         filteredPostes.sort((a, b) => {
+            const titleA = a.querySelector('h2').textContent;
+            const titleB = b.querySelector('h2').textContent;
+            const dateA = new Date(a.dataset.date);
+            const dateB = new Date(b.dataset.date);
+
             switch (sortValue) {
                 case 'date-asc':
-                    return new Date(a.dataset.date) - new Date(b.dataset.date);
+                    return dateA - dateB;
                 case 'title-asc':
-                    return a.querySelector('h5').textContent.localeCompare(b.querySelector('h5').textContent);
+                    return titleA.localeCompare(titleB);
                 case 'title-desc':
-                    return b.querySelector('h5').textContent.localeCompare(a.querySelector('h5').textContent);
+                    return titleB.localeCompare(titleA);
                 case 'date-desc':
                 default:
-                    return new Date(b.dataset.date) - new Date(a.dataset.date);
+                    return dateB - dateA;
             }
         });
 
         // 3. Mettre à jour le DOM
         posteList.innerHTML = '';
-        filteredPostes.forEach(poste => posteList.appendChild(poste));
+        if (filteredPostes.length > 0) {
+            filteredPostes.forEach(poste => posteList.appendChild(poste));
+        } else {
+            posteList.innerHTML = `<div class="text-center py-12"><p class="text-lg text-gray-600">Aucun poste ne correspond à vos critères.</p></div>`;
+        }
     }
 
     filterInput.addEventListener('keyup', filterAndSort);

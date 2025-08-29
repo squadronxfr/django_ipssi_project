@@ -18,10 +18,12 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from recruitment.views import PosteListView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('accounts.urls')),
+    path('', PosteListView.as_view(), name='home'),
+    path('account/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('recruitment/', include('recruitment.urls', namespace='recruitment')),
 ]
 

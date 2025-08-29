@@ -5,9 +5,15 @@ from .utils import upload_to_cv, upload_to_lettre
 
 
 class Poste(models.Model):
+    class TypeContrat(models.TextChoices):
+        CDI = "CDI", "CDI"
+        CDD = "CDD", "CDD"
+        ALTERNANCE = "Alternance", "Alternance"
+
     titre = models.CharField(max_length=200)
     description = models.TextField()
     competences_requises = models.TextField(blank=True)
+    type_contrat = models.CharField(max_length=20, choices=TypeContrat.choices, default=TypeContrat.CDI)
     date_creation = models.DateTimeField(auto_now_add=True)
     actif = models.BooleanField(default=True)
 
@@ -25,6 +31,7 @@ class Candidature(models.Model):
     class Statuts(models.TextChoices):
         SOUMISE = "submitted", "Soumise"
         EN_REVUE = "in_review", "En revue"
+        ENTRETIEN = "interview", "Entretien"
         ACCEPTEE = "accepted", "Acceptée"
         REFUSEE = "rejected", "Refusée"
 
@@ -56,6 +63,19 @@ class Candidature(models.Model):
 
     def __str__(self) -> str:
         return f"{self.candidat.username} -> {self.poste.titre} ({self.get_statut_display()})"
+
+    def get_statut_class(self) -> str:
+        if self.statut == self.Statuts.SOUMISE:
+            return "bg-gray-100 text-gray-800"
+        elif self.statut == self.Statuts.EN_REVUE:
+            return "bg-yellow-100 text-yellow-800"
+        elif self.statut == self.Statuts.ENTRETIEN:
+            return "bg-blue-100 text-blue-800"
+        elif self.statut == self.Statuts.ACCEPTEE:
+            return "bg-green-100 text-green-800"
+        elif self.statut == self.Statuts.REFUSEE:
+            return "bg-red-100 text-red-800"
+        return "bg-gray-100 text-gray-800"
 
 
 class Score(models.Model):

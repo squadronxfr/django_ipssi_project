@@ -13,10 +13,17 @@ class BaseRecruitmentAdmin(admin.ModelAdmin):
             name__in=['admin_group', 'recruteur_group']
         ).exists()
 
-    has_view_permission = has_module_permission
-    has_add_permission = has_module_permission
-    has_change_permission = has_module_permission
-    has_delete_permission = has_module_permission
+    def has_view_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_add_permission(self, request):
+        return self.has_module_permission(request)
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
 
 
 @admin.register(Poste)

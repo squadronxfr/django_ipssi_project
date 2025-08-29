@@ -29,7 +29,7 @@ def candidate_only_view(request):
 
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('dashboard/', home, name='dashboard'),
     path('login/', views.RoleBasedLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.CandidateSignUpView.as_view(), name='register'),
