@@ -1,44 +1,17 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import Group
-
 from .models import UserProfile
-from . import permissions as perms
-from .utils import create_default_groups
-
-
-ROLE_TO_GROUP = {
-    UserProfile.Roles.ADMIN: perms.ADMIN_GROUP,
-    UserProfile.Roles.RECRUITER: perms.RECRUITER_GROUP,
-    UserProfile.Roles.CANDIDATE: perms.CANDIDATE_GROUP,
-}
-
-
-def _ensure_groups_exist():
-    # Tente de créer/mettre à jour les groupes si absents
-    try:
-        create_default_groups()
-    except Exception:
-        pass
-
-
-def _assign_user_to_group(profile: UserProfile) -> None:
-    group_name = ROLE_TO_GROUP.get(profile.role)
-    if not group_name:
-        return
-
-    # S'assurer que les groupes existent
-    _ensure_groups_exist()
-
-    user = profile.user
-    groups_to_consider = [perms.ADMIN_GROUP, perms.RECRUITER_GROUP, perms.CANDIDATE_GROUP]
-    user.groups.remove(*Group.objects.filter(name__in=groups_to_consider))
-
-    group, _ = Group.objects.get_or_create(name=group_name)
-    user.groups.add(group)
-
 
 @receiver(post_save, sender=UserProfile)
-def userprofile_post_save(sender, instance: UserProfile, created, **kwargs):
-    """À chaque création/mise à jour du profil, synchroniser le groupe de l'utilisateur."""
-    _assign_user_to_group(instance)
+def assign_user_group(sender, instance, created, **kwargs):
+    if created:
+        group_mapping = {
+            UserProfile.Roles.ADMIN: 'admin_group',
+            UserProfile.Roles.RECRUITER: 'recruteur_group',
+            UserProfile.Roles.CANDIDATE: 'candidat_group',
+        }
+        group_name = group_mapping.get(instance.role, 'candidat_group')
+        group, _ = Group.objects.get_or_create(name=group_name)
+        instance.user.groups.clear()
+        instance.user.groups.add(group)
