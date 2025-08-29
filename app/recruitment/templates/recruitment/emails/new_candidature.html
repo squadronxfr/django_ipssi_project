@@ -1,0 +1,8 @@
+<p>Bonjour,</p>
+
+<p>Une nouvelle candidature a été soumise par <strong>{{ candidat_name }}</strong> pour le poste "{{ poste_titre }}".</p>
+
+<p>Vous pouvez consulter les détails en cliquant sur le lien ci-dessous :</p>
+<p><a href="{{ request.scheme }}://{{ request.get_host }}{{ poste_url }}">Voir le poste</a></p>
+
+<p>Cordialement,<br>L'équipe RH</p>

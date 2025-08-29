@@ -1,0 +1,8 @@
+Bonjour,
+
+Une nouvelle candidature a été soumise par {{ candidat_name }} pour le poste "{{ poste_titre }}".
+
+Vous pouvez consulter les détails du poste ici : {{ request.scheme }}://{{ request.get_host }}{{ poste_url }}
+
+Cordialement,
+L'équipe RH
