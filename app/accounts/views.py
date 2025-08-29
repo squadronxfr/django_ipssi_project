@@ -139,10 +139,15 @@ class ProfileView(LoginRequiredMixin, FormView):
         return super().form_invalid(form)
 
 
-class LogoutViewCBV(LogoutView):
-    """Vue de déconnexion simple."""
+from django.contrib.auth import logout
+from django.contrib import messages
 
-    next_page = "/"
+
+def logout_view(request):
+    """Déconnecte l'utilisateur, affiche un message et redirige vers le login."""
+    logout(request)
+    messages.success(request, "Vous avez été déconnecté avec succès.")
+    return redirect("login")
 
 
 @method_decorator(login_required, name="dispatch")

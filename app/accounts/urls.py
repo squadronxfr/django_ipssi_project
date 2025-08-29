@@ -4,13 +4,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.contrib.auth import views as auth_views
 
-from .views import (
-    RoleBasedLoginView,
-    CandidateSignUpView,
-    ProfileView,
-    LogoutViewCBV,
-    PasswordChangeViewCBV,
-)
+from . import views
 from .decorators import admin_required, recruteur_required, candidat_required
 
 def home(request):
@@ -38,11 +32,11 @@ def candidate_only_view(request):
 urlpatterns = [
     path('', home, name='home'),
     # Auth
-    path('login/', RoleBasedLoginView.as_view(), name='login'),
-    path('logout/', LogoutViewCBV.as_view(), name='logout'),
-    path('register/', CandidateSignUpView.as_view(), name='register'),
-    path('profile/', ProfileView.as_view(), name='profile'),
-    path('password-change/', PasswordChangeViewCBV.as_view(), name='password_change'),
+    path('login/', views.RoleBasedLoginView.as_view(), name='login'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.CandidateSignUpView.as_view(), name='register'),
+    path('profile/', views.ProfileView.as_view(), name='profile'),
+    path('password-change/', views.PasswordChangeViewCBV.as_view(), name='password_change'),
     path('password-change/done/', auth_views.PasswordChangeDoneView.as_view(), name='password_change_done'),
 
     # Endpoints de test pour les décorateurs

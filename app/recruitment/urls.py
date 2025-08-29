@@ -11,20 +11,21 @@ router.register(r'candidatures', api_views.CandidatureViewSet, basename='candida
 router.register(r'scores', api_views.ScoreViewSet, basename='score')
 
 # URLs pour les vues web traditionnelles
+# URLs pour les vues web traditionnelles
 urlpatterns = [
     # Vues pour les postes
-    path('', views.poste_list_view, name='poste_list'),
-    path('postes/<int:pk>/', views.poste_detail_view, name='poste_detail'),
+    path('', views.PosteListView.as_view(), name='poste_list'),
+    path('postes/<int:pk>/', views.PosteDetailView.as_view(), name='poste_detail'),
 
-    # Vue pour postuler
-    path('postes/<int:pk>/apply/', views.CandidatureCreateView.as_view(), name='candidature_create'),
+    # Vue pour postuler (utilise la même vue que le détail)
+    path('postes/<int:pk>/apply/', views.PosteDetailView.as_view(), name='candidature_create'),
 
     # Dashboards
-    path('dashboard/admin/', views.dashboard_admin, name='dashboard_admin'),
-    path('dashboard/recruteur/', views.dashboard_recruteur, name='dashboard_recruteur'),
+    path('dashboard/admin/', views.AdminDashboardView.as_view(), name='dashboard_admin'),
+    path('dashboard/recruteur/', views.RecruiterDashboardView.as_view(), name='dashboard_recruteur'),
 
     # URL sécurisée pour le téléchargement de CV
-    path('candidatures/cv/<int:candidature_id>/', views.download_cv, name='download_cv'),
+    path('candidatures/cv/<int:candidature_id>/', views.DownloadCVView.as_view(), name='download_cv'),
 
     # URLs de l'API
     path('api/', include(router.urls)),
