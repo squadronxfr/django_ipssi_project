@@ -16,10 +16,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'tailwind',
     'rest_framework',
     'accounts.apps.AccountsConfig',
     'recruitment',
 ]
+
+TAILWIND_APP_NAME = 'theme'
+NPM_BIN_PATH = "/usr/local/bin/npm"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
