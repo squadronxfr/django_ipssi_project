@@ -3,17 +3,19 @@
 {% block title %}Dashboard Recruteur - RH System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h1 class="my-4">Tableau de Bord Recruteur</h1>
-    <p>Liste des candidatures pour les postes qui vous sont assignés.</p>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Tableau de Bord Recruteur</h1>
+    <p class="text-gray-600 mb-6">Liste des candidatures pour les postes qui vous sont assignés.</p>
 
     <!-- Filtres et Tri -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <input type="text" id="filterTableInput" class="form-control" placeholder="Filtrer par candidat ou poste...">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-gray-50 p-4 rounded-lg">
+        <div>
+            <label for="filterTableInput" class="block text-sm font-medium text-gray-700">Filtrer par candidat ou poste</label>
+            <input type="text" id="filterTableInput" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="Rechercher...">
         </div>
-        <div class="col-md-4">
-            <select id="filterStatus" class="form-select">
+        <div>
+            <label for="filterStatus" class="block text-sm font-medium text-gray-700">Statut de la candidature</label>
+            <select id="filterStatus" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm">
                 <option value="">Tous les statuts</option>
                 <option value="en_attente">En attente</option>
                 <option value="en_revision">En révision</option>
@@ -22,40 +24,47 @@
                 <option value="refuse">Refusé</option>
             </select>
         </div>
-        <div class="col-md-4">
-            <button id="sortScore" class="btn btn-outline-secondary w-100">Trier par Score</button>
+        <div>
+            <label for="sortScore" class="block text-sm font-medium text-gray-700">Trier par score</label>
+            <button id="sortScore" class="mt-1 w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                Trier par Score (Haut > Bas)
+            </button>
         </div>
     </div>
 
     <!-- Tableau des Candidatures -->
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-800">
                 <tr>
-                    <th scope="col">Candidat</th>
-                    <th scope="col">Poste</th>
-                    <th scope="col">Date de Candidature</th>
-                    <th scope="col">Statut</th>
-                    <th scope="col" class="text-center">Score</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Candidat</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Poste</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-white uppercase tracking-wider">Score</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody id="candidaturesTableBody">
+            <tbody id="candidaturesTableBody" class="bg-white divide-y divide-gray-200">
                 {% for candidature in candidatures %}
-                <tr data-status="{{ candidature.statut }}">
-                    <td>{{ candidature.candidat.get_full_name|default:candidature.candidat.username }}</td>
-                    <td>{{ candidature.poste.titre }}</td>
-                    <td>{{ candidature.date_soumission|date:"d/m/Y" }}</td>
-                    <td><span class="badge bg-secondary">{{ candidature.get_statut_display }}</span></td>
-                    <td class="text-center fw-bold">{{ candidature.score|default:"N/A" }}</td>
-                    <td>
-                        <a href="#" class="btn btn-sm btn-primary">Voir</a>
-                        {# <a href="{% url 'update_candidature_status' candidature.id %}" class="btn btn-sm btn-info">Changer Statut</a> #}
+                <tr data-status="{{ candidature.statut }}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ candidature.candidat.get_full_name|default:candidature.candidat.username }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidature.poste.titre }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ candidature.date_soumission|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ candidature.get_statut_class }}">
+                            {{ candidature.get_statut_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-bold text-gray-700">{{ candidature.score|default:"N/A" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="{% url 'recruitment:candidature_detail' candidature.pk %}" class="text-primary hover:text-indigo-900">Voir</a>
+                        <a href="{% url 'recruitment:candidature_status_update' candidature.pk %}" class="ml-4 text-gray-500 hover:text-gray-800">Éditer</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="text-center">Aucune candidature à afficher.</td>
+                    <td colspan="6" class="text-center py-12 text-gray-500">Aucune candidature à afficher.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -80,6 +89,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const statusValue = filterStatus.value;
 
         rows.forEach(row => {
+            if (row.cells.length < 6) return; // Skip empty row message
+
             const candidateName = row.cells[0].textContent.toLowerCase();
             const posteTitle = row.cells[1].textContent.toLowerCase();
             const status = row.dataset.status;
@@ -87,32 +98,24 @@ document.addEventListener('DOMContentLoaded', function () {
             const textMatch = candidateName.includes(filterText) || posteTitle.includes(filterText);
             const statusMatch = statusValue === '' || status === statusValue;
 
-            if (textMatch && statusMatch) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = (textMatch && statusMatch) ? '' : 'none';
         });
     }
 
     function sortRowsByScore() {
-        const visibleRows = rows.filter(row => row.style.display !== 'none');
+        const visibleRows = rows.filter(row => row.style.display !== 'none' && row.cells.length > 1);
         
         visibleRows.sort((a, b) => {
-            const scoreA = parseFloat(a.cells[4].textContent) || 0;
-            const scoreB = parseFloat(b.cells[4].textContent) || 0;
+            const scoreA = parseFloat(a.cells[4].textContent) || -1;
+            const scoreB = parseFloat(b.cells[4].textContent) || -1;
 
-            if (scoreSortDirection === 'desc') {
-                return scoreB - scoreA;
-            } else {
-                return scoreA - scoreB;
-            }
+            return (scoreSortDirection === 'desc') ? scoreB - scoreA : scoreA - scoreB;
         });
 
-        // Mettre à jour le DOM
+        // Re-append sorted rows
         visibleRows.forEach(row => tableBody.appendChild(row));
 
-        // Inverser la direction pour le prochain clic
+        // Toggle direction and update button text
         scoreSortDirection = scoreSortDirection === 'desc' ? 'asc' : 'desc';
         sortScoreBtn.textContent = `Trier par Score (${scoreSortDirection === 'desc' ? 'Haut > Bas' : 'Bas > Haut'})`;
     }

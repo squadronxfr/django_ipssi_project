@@ -1,117 +1,163 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.contrib.auth.models import User
+from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
-from django.views.generic import DetailView, FormView, ListView, TemplateView, View
+from django.views.generic import DetailView, FormView, ListView, TemplateView, View, CreateView, UpdateView, DeleteView
+from accounts.decorators import AdminRequiredMixin, RecruiterRequiredMixin, CandidateRequiredMixin
 
-from accounts.decorators import admin_required, recruteur_required
 from accounts.models import UserProfile
-
-from .forms import CandidatureForm
-from .models import Candidature, Poste
+from .forms import CandidatureForm, PosteForm, CandidatureStatusForm
+from .models import Candidature, Poste, Notification
 
 
 class PosteListView(ListView):
-    """Affiche la liste des postes. Différente pour les candidats et les recruteurs."""
-
     model = Poste
     context_object_name = "postes"
 
     def get_template_names(self):
-        """Utilise un template différent si l'utilisateur est un recruteur."""
-        if hasattr(self.request.user, "profile") and self.request.user.profile.role == UserProfile.Roles.RECRUITER:
-            return ["recruitment/poste_list_recruteur.html"]
         return ["recruitment/poste_list.html"]
 
     def get_queryset(self):
-        """Les candidats ne voient que les postes actifs."""
-        if hasattr(self.request.user, "profile") and self.request.user.profile.role == UserProfile.Roles.RECRUITER:
-            return Poste.objects.all()  # Les recruteurs voient tout
         return Poste.objects.filter(actif=True)
 
 
-class PosteDetailView(DetailView, FormView):
-    """Affiche les détails d'un poste et le formulaire de candidature."""
+class UserCandidaturesListView(CandidateRequiredMixin, ListView):
+    model = Candidature
+    template_name = 'recruitment/user_candidatures.html'
+    context_object_name = 'candidatures'
 
+    def get_queryset(self):
+        return Candidature.objects.filter(candidat=self.request.user).select_related('poste')
+
+
+class PosteDetailView(DetailView):
     model = Poste
     template_name = "recruitment/poste_detail.html"
     context_object_name = "poste"
-    form_class = CandidatureForm
-
-    def get_success_url(self):
-        return reverse_lazy("recruitment:poste-detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'] = CandidatureForm()
+        
         if self.request.user.is_authenticated:
             context["existing_candidature"] = Candidature.objects.filter(
                 poste=self.object, candidat=self.request.user
             ).first()
         return context
 
-    def form_valid(self, form):
-        """Crée une candidature si le formulaire est valide."""
-        if not self.request.user.is_authenticated:
-            return redirect("accounts:login")
-
-        poste = self.get_object()
-        candidature = form.save(commit=False)
-        candidature.candidat = self.request.user
-        candidature.poste = poste
-        candidature.save()
-        # Rediriger avec un message de succès (peut être géré avec le framework de messages)
-        return super().form_valid(form)
-
     def post(self, request, *args, **kwargs):
-        """Gère la soumission du formulaire."""
         self.object = self.get_object()
-        form = self.get_form()
+        
+        if not request.user.is_authenticated:
+            return redirect('accounts:login')
+        
+        form = CandidatureForm(request.POST, request.FILES)
         if form.is_valid():
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+            candidature = form.save(commit=False)
+            candidature.candidat = request.user
+            candidature.poste = self.object
+            candidature.save()
+
+            # Create notifications for recruiters and admins
+            admins_and_recruiters = User.objects.filter(
+                profile__role__in=[UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
+            ).distinct()
+            for user in admins_and_recruiters:
+                Notification.objects.create(
+                    user=user,
+                    notification_type=Notification.NotificationType.NOUVELLE_CANDIDATURE,
+                    message=f"Nouvelle candidature de {candidature.candidat.get_full_name()} pour le poste {candidature.poste.titre}."
+                )
+
+            return redirect(self.request.path)
+        
+        context = self.get_context_data()
+        context['form'] = form
+        return self.render_to_response(context)
 
 
-@method_decorator(recruteur_required, name="dispatch")
-class RecruiterDashboardView(ListView):
-    """Dashboard pour les recruteurs, liste les candidatures."""
-
-    model = Candidature
-    template_name = "recruitment/recruiter_dashboard.html"
-    context_object_name = "candidatures"
-
-    def get_queryset(self):
-        """Affiche les candidatures avec les scores."""
-        return Candidature.objects.select_related("candidat", "poste", "score").all()
-
-
-@method_decorator(admin_required, name="dispatch")
-class AdminDashboardView(TemplateView):
-    """Dashboard pour les administrateurs."""
-
-    template_name = "recruitment/admin_dashboard.html"
+class PosteCreateView(AdminRequiredMixin, CreateView):
+    model = Poste
+    form_class = PosteForm
+    template_name = 'recruitment/poste_form.html'
+    success_url = reverse_lazy('recruitment:dashboard_admin')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["total_postes"] = Poste.objects.count()
-        context["total_candidatures"] = Candidature.objects.count()
-        context["postes_actifs"] = Poste.objects.filter(actif=True).count()
-        context["candidatures_par_statut"] = (
-            Candidature.objects.values("statut").annotate(count=Count("statut")).order_by()
-        )
+        context['title'] = "Créer un nouveau poste"
         return context
 
 
-class DownloadCVView(LoginRequiredMixin, View):
-    """Vue sécurisée pour le téléchargement des CV."""
+class PosteUpdateView(AdminRequiredMixin, UpdateView):
+    model = Poste
+    form_class = PosteForm
+    template_name = 'recruitment/poste_form.html'
+    success_url = reverse_lazy('recruitment:dashboard_admin')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Modifier le poste : {self.object.titre}"
+        return context
+
+
+class PosteDeleteView(AdminRequiredMixin, DeleteView):
+    model = Poste
+    template_name = 'recruitment/poste_confirm_delete.html'
+    success_url = reverse_lazy('recruitment:dashboard_admin')
+
+
+class CandidatureDetailView(RecruiterRequiredMixin, DetailView):
+    model = Candidature
+    template_name = 'recruitment/candidature_detail.html'
+    context_object_name = 'candidature'
+
+
+class CandidatureUpdateStatusView(RecruiterRequiredMixin, UpdateView):
+    model = Candidature
+    form_class = CandidatureStatusForm
+    template_name = 'recruitment/candidature_status_form.html'
+    
+    def get_success_url(self):
+        return reverse_lazy('recruitment:candidature_detail', kwargs={'pk': self.object.pk})
+
+
+class PosteCandidaturesListView(AdminRequiredMixin, ListView):
+    model = Candidature
+    template_name = 'recruitment/poste_candidatures.html'
+    context_object_name = 'candidatures'
+
+    def get_queryset(self):
+        self.poste = get_object_or_404(Poste, pk=self.kwargs['poste_id'])
+        return Candidature.objects.filter(poste=self.poste)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['poste'] = self.poste
+        return context
+
+
+class RecruiterDashboardView(RecruiterRequiredMixin, ListView):
+    model = Candidature
+    template_name = "recruitment/dashboard_recruteur.html"
+    context_object_name = "candidatures"
+
+    def get_queryset(self):
+        return Candidature.objects.select_related("candidat", "poste", "score").all()
+
+
+class AdminDashboardView(AdminRequiredMixin, ListView):
+    model = Poste
+    template_name = "recruitment/dashboard_admin.html"
+    context_object_name = "postes"
+
+
+class DownloadCVView(LoginRequiredMixin, View):
     def get(self, request, candidature_id):
         candidature = get_object_or_404(Candidature, pk=candidature_id)
         user = request.user
 
-        # Seuls l'admin, le recruteur ou le candidat lui-même peuvent voir le CV
         is_admin = hasattr(user, "profile") and user.profile.role == UserProfile.Roles.ADMIN
         is_recruiter = hasattr(user, "profile") and user.profile.role == UserProfile.Roles.RECRUITER
         is_owner = candidature.candidat == user
@@ -122,7 +168,6 @@ class DownloadCVView(LoginRequiredMixin, View):
         if not candidature.cv_file:
             raise Http404("Fichier CV non trouvé.")
 
-        # Utiliser FileResponse pour servir le fichier
         try:
             return FileResponse(candidature.cv_file.open("rb"), as_attachment=True)
         except FileNotFoundError:

@@ -1,0 +1,62 @@
+{% extends "accounts/base.html" %}
+
+{% block title %}Détail de la Candidature - RH System{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Colonne principale : Détail de la candidature -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="border-b border-gray-200 pb-4 mb-4">
+                    <h1 class="text-3xl font-bold text-gray-900">Candidature de {{ candidature.candidat.get_full_name|default:candidature.candidat.username }}</h1>
+                    <p class="mt-2 text-lg text-primary font-semibold">pour le poste de {{ candidature.poste.titre }}</p>
+                    <p class="mt-2 text-sm text-gray-600">
+                        <span class="font-medium">Soumise le :</span> {{ candidature.date_soumission|date:"d F Y" }}
+                    </p>
+                </div>
+
+                <div class="space-y-6 text-gray-700">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800 mb-2">Documents</h2>
+                        <div class="flex space-x-4">
+                            {% if candidature.cv_file %}
+                                <a href="{% url 'recruitment:download_cv' candidature.id %}" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 font-bold rounded-md hover:bg-gray-200">
+                                    Télécharger le CV
+                                </a>
+                            {% endif %}
+                            {% if candidature.lettre_motivation_file %}
+                                <a href="#" class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-800 font-bold rounded-md hover:bg-gray-200">
+                                    Télécharger la lettre de motivation
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne latérale : Statut et Score -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-lg shadow-md sticky top-8 space-y-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Statut</h2>
+                    <p>
+                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ candidature.get_statut_class }}">
+                            {{ candidature.get_statut_display }}
+                        </span>
+                    </p>
+                    <a href="{% url 'recruitment:candidature_status_update' candidature.pk %}" class="mt-4 inline-block text-sm text-primary hover:underline">Modifier le statut</a>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">Score d'adéquation</h2>
+                    <p class="text-4xl font-bold text-gray-800">{{ candidature.score.score_ia|default:"N/A" }}</p>
+                    {% if candidature.score.recommandation_ia %}
+                        <p class="mt-2 text-sm text-gray-600">{{ candidature.score.recommandation_ia }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

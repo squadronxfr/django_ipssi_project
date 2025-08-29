@@ -8,31 +8,26 @@ from .models import Poste, Candidature, Score, Notification
 
 
 class BaseRecruitmentAdmin(admin.ModelAdmin):
-    """Admin de base pour restreindre l'accès aux recruteurs et admins."""
+    def has_module_permission(self, request):
+        return request.user.is_superuser or request.user.groups.filter(
+            name__in=['admin_group', 'recruteur_group']
+        ).exists()
 
-    def has_view_permission(self, request: HttpRequest, obj=None) -> bool:
-        if request.user.is_superuser:
-            return True
-        if hasattr(request.user, 'profile'):
-            return request.user.profile.role in [UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
-        return False
+    def has_view_permission(self, request, obj=None):
+        return self.has_module_permission(request)
 
-    def has_module_permission(self, request: HttpRequest) -> bool:
-        if request.user.is_superuser:
-            return True
-        if hasattr(request.user, 'profile'):
-            return request.user.profile.role in [UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
-        return False
+    def has_add_permission(self, request):
+        return self.has_module_permission(request)
 
-    # Appliquer la même logique pour les autres permissions
-    has_add_permission = has_view_permission
-    has_change_permission = has_view_permission
-    has_delete_permission = has_view_permission
+    def has_change_permission(self, request, obj=None):
+        return self.has_module_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return self.has_module_permission(request)
 
 
 @admin.register(Poste)
 class PosteAdmin(BaseRecruitmentAdmin):
-    """Configuration de l'admin pour le modèle Poste."""
     list_display = ('titre', 'actif', 'date_creation', 'nombre_candidatures')
     list_filter = ('actif',)
     search_fields = ('titre', 'description', 'competences_requises')
@@ -48,9 +43,8 @@ class PosteAdmin(BaseRecruitmentAdmin):
 
 
 class ScoreInline(admin.StackedInline):
-    """Inline pour afficher le Score dans l'admin de Candidature."""
     model = Score
-    extra = 0  # N'affiche pas de formulaire de score vide
+    extra = 0
     readonly_fields = ('score_ia', 'recommandation_ia', 'date_analyse')
     can_delete = False
 
@@ -60,7 +54,6 @@ class ScoreInline(admin.StackedInline):
 
 @admin.register(Candidature)
 class CandidatureAdmin(BaseRecruitmentAdmin):
-    """Configuration de l'admin pour le modèle Candidature."""
     list_display = ('candidat', 'poste', 'statut', 'date_soumission', 'apercu_cv')
     list_filter = ('statut', 'poste__titre')
     search_fields = ('candidat__username', 'candidat__email', 'poste__titre')
@@ -93,7 +86,6 @@ class CandidatureAdmin(BaseRecruitmentAdmin):
 
 @admin.register(Score)
 class ScoreAdmin(admin.ModelAdmin):
-    """Configuration de l'admin pour le modèle Score (lecture seule)."""
     list_display = ('candidature', 'score_ia', 'date_analyse')
     readonly_fields = [f.name for f in Score._meta.fields]
     search_fields = ('candidature__candidat__username', 'candidature__poste__titre')
@@ -102,7 +94,7 @@ class ScoreAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request: HttpRequest, obj=None) -> bool:
-        return False # Permet la vue mais pas l'édition
+        return False
 
     def has_delete_permission(self, request: HttpRequest, obj=None) -> bool:
         return False
@@ -110,7 +102,6 @@ class ScoreAdmin(admin.ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
-    """Configuration de l'admin pour les notifications (Admins seulement)."""
     list_display = ('user', 'notification_type', 'message', 'is_read', 'created_at')
     list_filter = ('is_read', 'notification_type', 'user__username')
     search_fields = ('user__username', 'message')
@@ -121,7 +112,6 @@ class NotificationAdmin(admin.ModelAdmin):
         updated = queryset.update(is_read=True)
         self.message_user(request, f"{updated} notifications marquées comme lues.", messages.SUCCESS)
 
-    # Restreindre l'accès aux admins
     def has_view_permission(self, request: HttpRequest, obj=None) -> bool:
         return request.user.is_superuser or (hasattr(request.user, 'profile') and request.user.profile.role == UserProfile.Roles.ADMIN)
 

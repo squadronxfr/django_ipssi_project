@@ -1,14 +1,11 @@
 from django.core.management.base import BaseCommand
-
-from accounts.utils import create_default_groups
-
+from django.contrib.auth.models import Group
 
 class Command(BaseCommand):
-    help = (
-        "Crée/Met à jour les groupes par défaut (admin_group, recruteur_group, "
-        "candidat_group) et assigne leurs permissions."
-    )
+    help = "Crée les groupes par défaut"
 
     def handle(self, *args, **options):
-        create_default_groups()
-        self.stdout.write(self.style.SUCCESS("Groupes et permissions configurés."))
+        groups = ['admin_group', 'recruteur_group', 'candidat_group']
+        for group_name in groups:
+            Group.objects.get_or_create(name=group_name)
+        self.stdout.write(self.style.SUCCESS("Groupes créés."))
