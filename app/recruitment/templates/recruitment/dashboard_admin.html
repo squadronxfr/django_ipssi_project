@@ -9,7 +9,7 @@
             <h1 class="text-3xl font-bold text-gray-900">Gestion des Postes</h1>
             <p class="text-gray-600 mt-1">Créez, modifiez et gérez les offres d'emploi.</p>
         </div>
-        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+        <a href="{% url 'recruitment:poste_create' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
             Ajouter un poste
         </a>
     </div>
@@ -39,16 +39,16 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ poste.get_type_contrat_display }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ poste.date_publication|date:"d/m/Y" }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        {% if poste.est_ouvert %}
+                        {% if poste.actif %}
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ouvert</span>
                         {% else %}
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Fermé</span>
                         {% endif %}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" class="text-primary hover:text-indigo-900">Candidatures</a>
-                        <a href="#" class="ml-4 text-yellow-600 hover:text-yellow-900">Modifier</a>
-                        <a href="#" class="ml-4 text-red-600 hover:text-red-900">Supprimer</a>
+                        <a href="{% url 'recruitment:poste_candidatures' poste.pk %}" class="text-primary hover:text-indigo-900">Candidatures</a>
+                        <a href="{% url 'recruitment:poste_update' poste.pk %}" class="ml-4 text-yellow-600 hover:text-yellow-900">Modifier</a>
+                        <a href="{% url 'recruitment:poste_delete' poste.pk %}" class="ml-4 text-red-600 hover:text-red-900">Supprimer</a>
                     </td>
                 </tr>
                 {% empty %}

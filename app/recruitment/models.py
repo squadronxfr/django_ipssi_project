@@ -5,9 +5,15 @@ from .utils import upload_to_cv, upload_to_lettre
 
 
 class Poste(models.Model):
+    class TypeContrat(models.TextChoices):
+        CDI = "CDI", "CDI"
+        CDD = "CDD", "CDD"
+        ALTERNANCE = "Alternance", "Alternance"
+
     titre = models.CharField(max_length=200)
     description = models.TextField()
     competences_requises = models.TextField(blank=True)
+    type_contrat = models.CharField(max_length=20, choices=TypeContrat.choices, default=TypeContrat.CDI)
     date_creation = models.DateTimeField(auto_now_add=True)
     actif = models.BooleanField(default=True)
 

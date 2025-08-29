@@ -58,8 +58,8 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-bold text-gray-700">{{ candidature.score|default:"N/A" }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <a href="#" class="text-primary hover:text-indigo-900">Voir</a>
-                        {# <a href="{% url 'update_candidature_status' candidature.id %}" class="ml-4 text-gray-500 hover:text-gray-800">Éditer</a> #}
+                        <a href="{% url 'recruitment:candidature_detail' candidature.pk %}" class="text-primary hover:text-indigo-900">Voir</a>
+                        <a href="{% url 'recruitment:candidature_status_update' candidature.pk %}" class="ml-4 text-gray-500 hover:text-gray-800">Éditer</a>
                     </td>
                 </tr>
                 {% empty %}
