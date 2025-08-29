@@ -3,56 +3,57 @@
 {% block title %}Dashboard Admin - RH System{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="d-flex justify-content-between align-items-center my-4">
-        <h1>Gestion des Postes</h1>
-        {# <a href="{% url 'create_poste' %}" class="btn btn-primary">Ajouter un poste</a> #}
-        <a href="#" class="btn btn-primary">Ajouter un poste</a>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Gestion des Postes</h1>
+            <p class="text-gray-600 mt-1">Créez, modifiez et gérez les offres d'emploi.</p>
+        </div>
+        <a href="#" class="inline-flex items-center px-4 py-2 bg-primary text-white font-bold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+            Ajouter un poste
+        </a>
     </div>
 
     <!-- Filtre -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <input type="text" id="filterAdminInput" class="form-control" placeholder="Filtrer par titre de poste...">
-        </div>
+    <div class="mb-4">
+        <label for="filterAdminInput" class="sr-only">Filtrer les postes</label>
+        <input type="text" id="filterAdminInput" class="block w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="Filtrer par titre de poste...">
     </div>
 
     <!-- Tableau des Postes -->
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-800">
                 <tr>
-                    <th scope="col">Titre du Poste</th>
-                    <th scope="col">Type de Contrat</th>
-                    <th scope="col">Date de Publication</th>
-                    <th scope="col">Statut</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Titre du Poste</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Type de Contrat</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Date de Publication</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">Statut</th>
+                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-white uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
-            <tbody id="postesTableBody">
+            <tbody id="postesTableBody" class="bg-white divide-y divide-gray-200">
                 {% for poste in postes %}
-                <tr>
-                    <td>{{ poste.titre }}</td>
-                    <td>{{ poste.get_type_contrat_display }}</td>
-                    <td>{{ poste.date_publication|date:"d/m/Y" }}</td>
-                    <td>
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ poste.titre }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ poste.get_type_contrat_display }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ poste.date_publication|date:"d/m/Y" }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
                         {% if poste.est_ouvert %}
-                            <span class="badge bg-success">Ouvert</span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Ouvert</span>
                         {% else %}
-                            <span class="badge bg-danger">Fermé</span>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Fermé</span>
                         {% endif %}
                     </td>
-                    <td>
-                        {# <a href="{% url 'edit_poste' poste.id %}" class="btn btn-sm btn-warning">Modifier</a> #}
-                        {# <a href="{% url 'delete_poste' poste.id %}" class="btn btn-sm btn-danger">Supprimer</a> #}
-                        <a href="#" class="btn btn-sm btn-info">Voir les candidatures</a>
-                        <a href="#" class="btn btn-sm btn-warning">Modifier</a>
-                        <a href="#" class="btn btn-sm btn-danger">Supprimer</a>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <a href="#" class="text-primary hover:text-indigo-900">Candidatures</a>
+                        <a href="#" class="ml-4 text-yellow-600 hover:text-yellow-900">Modifier</a>
+                        <a href="#" class="ml-4 text-red-600 hover:text-red-900">Supprimer</a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="5" class="text-center">Aucun poste à gérer.</td>
+                    <td colspan="5" class="text-center py-12 text-gray-500">Aucun poste à gérer.</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -72,12 +73,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const filterText = filterInput.value.toLowerCase();
 
         rows.forEach(row => {
+            if (row.cells.length < 5) return; // Skip empty row message
             const title = row.cells[0].textContent.toLowerCase();
-            if (title.includes(filterText)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = title.includes(filterText) ? '' : 'none';
         });
     });
 });

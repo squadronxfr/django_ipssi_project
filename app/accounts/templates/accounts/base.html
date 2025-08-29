@@ -33,9 +33,9 @@
                 {% endif %}
               {% endif %}
               {% if request.user.profile and request.user.profile.role == 'recruiter' %}
-                <span class="text-gray-400 cursor-not-allowed">Recrutement</span>
+                <a href="/recruitment/dashboard/recruteur/" class="text-gray-400">Recrutement</a>
               {% elif request.user.profile and request.user.profile.role == 'candidate' %}
-                <span class="text-gray-400 cursor-not-allowed">Mes candidatures</span>
+                <a href="/recruitment/" class="text-gray-400">Mes candidatures</a>
               {% endif %}
             {% endif %}
           </div>

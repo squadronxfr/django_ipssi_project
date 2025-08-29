@@ -16,7 +16,7 @@ class PosteListView(ListView):
     context_object_name = "postes"
 
     def get_template_names(self):
-        return ["recruitment/poste_list_recruteur.html" if self._is_recruiter() else "recruitment/poste_list.html"]
+        return ["recruitment/poste_list.html" if self._is_recruiter() else "recruitment/poste_list.html"]
 
     def get_queryset(self):
         return Poste.objects.all() if self._is_recruiter() else Poste.objects.filter(actif=True)
@@ -62,7 +62,7 @@ class PosteDetailView(DetailView):
 
 class RecruiterDashboardView(ListView):
     model = Candidature
-    template_name = "recruitment/recruiter_dashboard.html"
+    template_name = "recruitment/dashboard_recruteur.html"
     context_object_name = "candidatures"
 
     def get_queryset(self):
@@ -70,7 +70,7 @@ class RecruiterDashboardView(ListView):
 
 
 class AdminDashboardView(AdminRequiredMixin, TemplateView):
-    template_name = "recruitment/admin_dashboard.html"
+    template_name = "recruitment/dashboard_admin.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

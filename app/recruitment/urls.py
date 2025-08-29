@@ -11,7 +11,6 @@ router.register(r'candidatures', api_views.CandidatureViewSet, basename='candida
 router.register(r'scores', api_views.ScoreViewSet, basename='score')
 
 # URLs pour les vues web traditionnelles
-# URLs pour les vues web traditionnelles
 urlpatterns = [
     # Vues pour les postes
     path('', views.PosteListView.as_view(), name='poste_list'),
