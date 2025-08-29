@@ -3,10 +3,9 @@ from django.db.models import Count
 from django.http import FileResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from django.views.generic import DetailView, FormView, ListView, TemplateView, View
+from accounts.decorators import AdminRequiredMixin, RecruiterRequiredMixin
 
-from accounts.decorators import admin_required, recruteur_required
 from accounts.models import UserProfile
 from .forms import CandidatureForm
 from .models import Candidature, Poste
@@ -64,7 +63,6 @@ class PosteDetailView(DetailView, FormView):
             return self.form_invalid(form)
 
 
-@method_decorator(recruteur_required, name="dispatch")
 class RecruiterDashboardView(ListView):
     model = Candidature
     template_name = "recruitment/recruiter_dashboard.html"
@@ -74,8 +72,7 @@ class RecruiterDashboardView(ListView):
         return Candidature.objects.select_related("candidat", "poste", "score").all()
 
 
-@method_decorator(admin_required, name="dispatch")
-class AdminDashboardView(TemplateView):
+class AdminDashboardView(AdminRequiredMixin, TemplateView):
     template_name = "recruitment/admin_dashboard.html"
 
     def get_context_data(self, **kwargs):

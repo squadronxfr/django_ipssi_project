@@ -8,23 +8,15 @@ from .models import Poste, Candidature, Score, Notification
 
 
 class BaseRecruitmentAdmin(admin.ModelAdmin):
-    def has_view_permission(self, request: HttpRequest, obj=None) -> bool:
-        if request.user.is_superuser:
-            return True
-        if hasattr(request.user, 'profile'):
-            return request.user.profile.role in [UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
-        return False
+    def has_module_permission(self, request):
+        return request.user.is_superuser or request.user.groups.filter(
+            name__in=['admin_group', 'recruteur_group']
+        ).exists()
 
-    def has_module_permission(self, request: HttpRequest) -> bool:
-        if request.user.is_superuser:
-            return True
-        if hasattr(request.user, 'profile'):
-            return request.user.profile.role in [UserProfile.Roles.ADMIN, UserProfile.Roles.RECRUITER]
-        return False
-
-    has_add_permission = has_view_permission
-    has_change_permission = has_view_permission
-    has_delete_permission = has_view_permission
+    has_view_permission = has_module_permission
+    has_add_permission = has_module_permission
+    has_change_permission = has_module_permission
+    has_delete_permission = has_module_permission
 
 
 @admin.register(Poste)
