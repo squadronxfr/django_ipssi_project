@@ -6,7 +6,6 @@ from .models import UserProfile
 from . import permissions as perms
 from .utils import create_default_groups
 
-
 ROLE_TO_GROUP = {
     UserProfile.Roles.ADMIN: perms.ADMIN_GROUP,
     UserProfile.Roles.RECRUITER: perms.RECRUITER_GROUP,
@@ -15,7 +14,6 @@ ROLE_TO_GROUP = {
 
 
 def _ensure_groups_exist():
-    # Tente de créer/mettre à jour les groupes si absents
     try:
         create_default_groups()
     except Exception:
@@ -27,7 +25,6 @@ def _assign_user_to_group(profile: UserProfile) -> None:
     if not group_name:
         return
 
-    # S'assurer que les groupes existent
     _ensure_groups_exist()
 
     user = profile.user
@@ -40,5 +37,4 @@ def _assign_user_to_group(profile: UserProfile) -> None:
 
 @receiver(post_save, sender=UserProfile)
 def userprofile_post_save(sender, instance: UserProfile, created, **kwargs):
-    """À chaque création/mise à jour du profil, synchroniser le groupe de l'utilisateur."""
     _assign_user_to_group(instance)
