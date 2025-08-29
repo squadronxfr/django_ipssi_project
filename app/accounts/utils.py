@@ -1,40 +1,9 @@
 import logging
 from typing import Optional, List, Mapping, Union, Sequence
-
-from django.contrib.auth.models import Group, Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
 from django.template.loader import render_to_string
 
-from .models import UserProfile
-from . import permissions as perms
-
 logger = logging.getLogger(__name__)
-
-
-@transaction.atomic
-def create_default_groups() -> None:
-    ct = ContentType.objects.get_for_model(UserProfile)
-
-    required_codenames = set()
-    for codes in perms.GROUP_PERMISSIONS.values():
-        required_codenames.update(codes)
-
-    existing_perms = Permission.objects.filter(content_type=ct, codename__in=required_codenames)
-    existing_by_code = {p.codename: p for p in existing_perms}
-
-    missing = required_codenames - set(existing_by_code.keys())
-    if missing:
-        logger.debug("Permissions manquantes: %s", ", ".join(sorted(missing)))
-
-    for group_name, codename_set in perms.GROUP_PERMISSIONS.items():
-        group, _ = Group.objects.get_or_create(name=group_name)
-        perm_objs = Permission.objects.filter(
-            content_type=ct, codename__in=list(codename_set)
-        )
-        group.permissions.set(list(perm_objs))
-        group.save()
 
 
 def send_templated_email(

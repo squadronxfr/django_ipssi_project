@@ -24,25 +24,14 @@ class RoleBasedLoginView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        default_url = self._safe_reverse("profile", fallback="/")
 
-        if user.is_superuser or user.is_staff:
-            return self._safe_reverse("admin:index", fallback=default_url)
+        if user.is_superuser or user.is_staff or user.groups.filter(name='admin_group').exists():
+            return reverse('admin:index')
 
-        role: Optional[str] = None
-        try:
-            if hasattr(user, "profile") and user.profile:
-                role = user.profile.role
-        except Exception:
-            role = None
+        if user.groups.filter(name='recruteur_group').exists():
+            return reverse('recruitment:dashboard_recruteur')
 
-        if role == UserProfile.Roles.ADMIN:
-            return self._safe_reverse("admin:index", fallback=default_url)
-        elif role == UserProfile.Roles.RECRUITER:
-            return self._safe_reverse("profile", fallback=default_url)
-        elif role == UserProfile.Roles.CANDIDATE:
-            return self._safe_reverse("profile", fallback=default_url)
-        return default_url
+        return reverse('profile')
 
     def _safe_reverse(self, name: str, fallback: str = "/") -> str:
         try:
